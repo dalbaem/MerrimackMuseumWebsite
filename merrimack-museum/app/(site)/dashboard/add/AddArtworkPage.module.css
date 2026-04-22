@@ -1,0 +1,28 @@
+.shell {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.panel {
+  border-radius: 22px;
+  padding: 1.5rem;
+}
+
+.formHeader {
+  margin-bottom: 1.25rem;
+}
+
+.submitRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.submitButton {
+  min-width: 10rem;
+}
+
+.uploadSection {
+  margin-top: 1.5rem;
+}

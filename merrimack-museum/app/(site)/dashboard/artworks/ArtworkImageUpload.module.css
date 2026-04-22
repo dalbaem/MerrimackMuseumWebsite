@@ -1,0 +1,9 @@
+.uploadPreview {
+  border-radius: 18px;
+}
+
+.uploadActions {
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: center;
+}

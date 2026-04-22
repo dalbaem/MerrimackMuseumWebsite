@@ -1,0 +1,48 @@
+.aboutContainer {
+  min-height: calc(100vh - 80px);
+  background-color: #003768;
+  color: white;
+}
+
+.aboutContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.introContainer {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.contactBar {
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 999;
+}
+
+.aboutContainer p {
+  margin-bottom: 20px;
+}
+
+.aboutContainer button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.aboutContainer button:hover {
+  background-color: #0056b3;
+}
+
+.modalHeading {
+  text-align: center;
+}

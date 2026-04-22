@@ -1,0 +1,102 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.2fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.panel {
+  border-radius: 22px;
+  padding: 1.5rem;
+}
+
+.imageCard {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.imageButton {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: zoom-in;
+  width: 100%;
+}
+
+.imageFrame {
+  border-radius: 18px;
+}
+
+.metaNote {
+  margin-top: 0.85rem;
+  color: rgba(11, 32, 58, 0.72);
+  font-size: 0.95rem;
+}
+
+.infoList {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.infoRow {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(11, 32, 58, 0.08);
+}
+
+.infoLabel {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(11, 32, 58, 0.58);
+}
+
+.infoValue {
+  color: #0b203a;
+  white-space: pre-wrap;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.dangerButton {
+  background: #b42318;
+}
+
+.modalImage {
+  max-height: 78vh;
+  object-fit: contain;
+}
+
+.emptyState {
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(11, 32, 58, 0.72);
+}
+
+@media (max-width: 64rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .imageCard {
+    position: static;
+  }
+}
+
+@media (max-width: 40rem) {
+  .infoRow {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}

@@ -1,0 +1,113 @@
+.panel {
+  padding: 2rem;
+  border-radius: 1.5rem;
+}
+
+.title {
+  color: #08253f;
+}
+
+.subtitle {
+  max-width: 40rem;
+  color: #4f6478;
+  line-height: 1.6;
+}
+
+.formGrid {
+  width: 100%;
+}
+
+.emailField :global(.mantine-TextInput-label) {
+  margin-bottom: 0.5rem;
+  color: #173854;
+  font-weight: 700;
+}
+
+.emailField :global(.mantine-Input-input) {
+  min-height: 3.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  background: #f6f9fc;
+}
+
+.fieldBlock {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  color: #173854;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.selectButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  border-radius: 1rem;
+  background: #f6f9fc;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.selectButton:hover,
+.selectButton[data-expanded] {
+  border-color: rgba(0, 55, 104, 0.35);
+  box-shadow: 0 0 0 3px rgba(0, 55, 104, 0.08);
+  background: #ffffff;
+}
+
+.selectLabel {
+  color: #173854;
+  font-weight: 600;
+}
+
+.selectIcon {
+  color: #4f6478;
+}
+
+.menuDropdown {
+  border-radius: 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  box-shadow: 0 18px 40px rgba(4, 24, 49, 0.14);
+}
+
+.submitRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.submitButton {
+  min-width: 10rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #003768, #0d4a7e);
+  box-shadow: 0 14px 28px rgba(0, 55, 104, 0.24);
+}
+
+.submitButton:disabled {
+  background: #b8c7d6;
+  box-shadow: none;
+}
+
+@media (max-width: 48rem) {
+  .panel {
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+  }
+
+  .submitRow {
+    justify-content: stretch;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}

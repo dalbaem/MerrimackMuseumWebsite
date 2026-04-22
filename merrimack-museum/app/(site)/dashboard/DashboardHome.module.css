@@ -1,0 +1,247 @@
+.page {
+  padding: 2rem 1.25rem 3rem;
+  background: linear-gradient(180deg, #003768 0%, #0d4a7e 100%);
+  min-height: calc(100vh - 56px);
+}
+
+.shell {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.title {
+  margin-bottom: 0.35rem;
+  color: #fff;
+}
+
+.subtitle {
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1.4fr) minmax(320px, 380px);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.leftColumn,
+.middleColumn {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.leftColumn {
+  align-self: start;
+}
+
+.middleColumn,
+.sideCard {
+  align-self: start;
+}
+
+.actionCard {
+  min-height: 140px;
+  padding: 1.5rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(236, 243, 248, 0.95)
+  );
+  box-shadow: 0 18px 36px rgba(4, 24, 49, 0.18);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.actionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 44px rgba(4, 24, 49, 0.22);
+}
+
+.actionLink {
+  color: #0b203a;
+  text-decoration: none;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.actionLink h3 {
+  font-size: 1.2rem;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.actionEyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(11, 32, 58, 0.56);
+}
+
+.actionFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(11, 32, 58, 0.72);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.searchCard {
+  padding: 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 40px rgba(11, 32, 58, 0.08);
+}
+
+.searchResults {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  max-height: 32rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.searchResults::-webkit-scrollbar {
+  width: 10px;
+}
+
+.searchResults::-webkit-scrollbar-thumb {
+  background: rgba(11, 32, 58, 0.22);
+  border-radius: 999px;
+}
+
+.searchResult {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 32, 58, 0.1);
+  background: rgba(245, 247, 250, 0.9);
+}
+
+.thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: rgba(223, 232, 240, 0.95);
+}
+
+.sideCard {
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 40px rgba(11, 32, 58, 0.08);
+  display: grid;
+  gap: 1rem;
+}
+
+.requestManagerHeader {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.requestTabs {
+  min-height: 0;
+}
+
+.requestTabsList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.requestTab {
+  width: 100%;
+  min-height: 3rem;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.2;
+  padding-inline: 0.6rem;
+}
+
+.requestSearchWrap {
+  margin-top: 0.85rem;
+}
+
+.requestScrollArea {
+  max-height: 28rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.requestScrollArea::-webkit-scrollbar {
+  width: 10px;
+}
+
+.requestScrollArea::-webkit-scrollbar-thumb {
+  background: rgba(11, 32, 58, 0.28);
+  border-radius: 999px;
+}
+
+.miniList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.miniListItem {
+  padding: 0.85rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(244, 248, 252, 0.95);
+  border: 1px solid rgba(11, 32, 58, 0.08);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.requestItemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.requestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.emptyState {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(244, 248, 252, 0.9);
+  color: rgba(11, 32, 58, 0.7);
+}
+
+@media (max-width: 64rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .searchResult {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .requestItemHeader {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+}
