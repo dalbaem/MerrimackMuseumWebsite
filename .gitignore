@@ -1,0 +1,9 @@
+.DS_Store
+
+merrimack-museum/.env.local
+
+merrimack-museum/node_modules/
+
+merrimack-museum/.next/
+
+package-lock.json
