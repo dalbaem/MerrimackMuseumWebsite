@@ -356,6 +356,20 @@ export async function findArtworkImageByArtworkId(
   return artwork?.imagePath || null;
 }
 
+export async function countArtworksUsingImagePath(
+  imagePath: string,
+  executor: DatabaseExecutor = db,
+) {
+  const row = await artworkBaseQuery(executor)
+    .select(
+      sql<number>`count(${sql.ref("artwork.idArtwork")})`.as("usageCount"),
+    )
+    .where("images.image_path", "=", imagePath)
+    .executeTakeFirst();
+
+  return Number(row?.usageCount ?? 0);
+}
+
 export async function createArtwork(input: ArtworkMutationInput) {
   return db.transaction().execute(async (trx) => {
     const relationIds = await resolveArtworkRelationIds(trx, input);

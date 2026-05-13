@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Alert, Button, Group, Image, Modal, Text, Title, useMantineTheme } from '@mantine/core';
+import { Alert, Badge, Button, Group, Image, Modal, Text, Title, useMantineTheme } from '@mantine/core';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardPageShell from '../../DashboardPageShell';
 import shellClasses from '../../DashboardPageShell.module.css';
@@ -121,6 +121,7 @@ export default function ArtworkDetailsPage() {
     };
 
     const currentPreviewImage = previewImage || formData.imagePath;
+    const hasReplacementImage = Boolean(uploadedImage);
     const subtitle = selectedArtwork
         ? formData.title || `Artwork #${selectedArtwork.id}`
         : 'We could not find that artwork record.';
@@ -146,7 +147,19 @@ export default function ArtworkDetailsPage() {
                                 </Text>
                             </>
                         ) : (
-                            <Text>No artwork image is available for this record.</Text>
+                            <>
+                                <Text>No artwork image is available for this record.</Text>
+                                {!isEditing ? (
+                                    <Button
+                                        fullWidth
+                                        variant="light"
+                                        className={pageClasses.imageAction}
+                                        onClick={() => setIsEditing(true)}
+                                    >
+                                        Add image
+                                    </Button>
+                                ) : null}
+                            </>
                         )}
                     </div>
 
@@ -158,7 +171,14 @@ export default function ArtworkDetailsPage() {
                         ) : null}
                         {isEditing ? (
                             <>
-                                <Title order={2}>Edit Artwork</Title>
+                                <Group justify="space-between" align="center" gap="sm">
+                                    <Title order={2}>Edit Artwork</Title>
+                                    {hasReplacementImage ? (
+                                        <Badge color="blue" variant="light">
+                                            New image selected
+                                        </Badge>
+                                    ) : null}
+                                </Group>
                                 <ArtworkFields
                                     values={formData}
                                     onFieldChange={(field, value) => setFormData((current) => ({ ...current, [field]: value }))}
@@ -173,8 +193,16 @@ export default function ArtworkDetailsPage() {
                                     theme={theme}
                                 />
 
+                                {hasReplacementImage ? (
+                                    <Alert color="blue" mt="md">
+                                        The replacement image will go live when you save changes.
+                                    </Alert>
+                                ) : null}
+
                                 <div className={pageClasses.editActions}>
-                                    <Button onClick={handleSave}>Save Changes</Button>
+                                    <Button onClick={handleSave}>
+                                        {hasReplacementImage ? 'Save Image Change' : 'Save Changes'}
+                                    </Button>
                                     <Button
                                         variant="light"
                                         onClick={() => {

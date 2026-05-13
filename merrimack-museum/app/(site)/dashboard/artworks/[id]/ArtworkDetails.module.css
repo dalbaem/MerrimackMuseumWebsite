@@ -33,6 +33,10 @@
   font-size: 0.95rem;
 }
 
+.imageAction {
+  margin-top: 1rem;
+}
+
 .infoList {
   display: grid;
   gap: 0.9rem;

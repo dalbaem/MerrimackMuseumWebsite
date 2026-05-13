@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import type { ArtworkMutationInput } from "@/server/artworks/types";
 import {
   type ArtworkMutationRequest,
@@ -29,6 +29,51 @@ function getCloudfrontBaseUrl() {
   return (
     process.env.AWS_CLOUDFRONT_BASE_URL || DEFAULT_CLOUDFRONT_BASE_URL
   ).replace(/\/$/, "");
+}
+
+function getManagedArtworkImageKey(imagePath: string | null | undefined) {
+  const normalizedImagePath = imagePath?.trim();
+  if (!normalizedImagePath) {
+    return null;
+  }
+
+  const cloudfrontBaseUrl = getCloudfrontBaseUrl();
+
+  try {
+    const imageUrl = new URL(normalizedImagePath);
+    const baseUrl = new URL(`${cloudfrontBaseUrl}/`);
+
+    if (imageUrl.origin !== baseUrl.origin) {
+      return null;
+    }
+
+    const basePath = baseUrl.pathname.endsWith("/")
+      ? baseUrl.pathname
+      : `${baseUrl.pathname}/`;
+
+    if (!imageUrl.pathname.startsWith(basePath)) {
+      return null;
+    }
+
+    const encodedObjectKey = imageUrl.pathname.slice(basePath.length);
+    if (!encodedObjectKey) {
+      return null;
+    }
+
+    return decodeURIComponent(encodedObjectKey);
+  } catch {
+    const managedPrefix = `${cloudfrontBaseUrl}/`;
+    if (!normalizedImagePath.startsWith(managedPrefix)) {
+      return null;
+    }
+
+    const objectKey = normalizedImagePath
+      .slice(managedPrefix.length)
+      .split(/[?#]/, 1)[0]
+      .trim();
+
+    return objectKey || null;
+  }
 }
 
 function parseImageDataUrl(dataUrl: string) {
@@ -63,6 +108,24 @@ async function uploadArtworkImage(input: {
   );
 
   return `${getCloudfrontBaseUrl()}/${objectKey}`;
+}
+
+export async function deleteManagedArtworkImage(imagePath: string | null | undefined) {
+  const objectKey = getManagedArtworkImageKey(imagePath);
+  if (!objectKey) {
+    return false;
+  }
+
+  const s3 = createS3Client();
+
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: ARTWORK_BUCKET_NAME,
+      Key: objectKey,
+    }),
+  );
+
+  return true;
 }
 
 function getArtworkUploadFailure(error: unknown) {

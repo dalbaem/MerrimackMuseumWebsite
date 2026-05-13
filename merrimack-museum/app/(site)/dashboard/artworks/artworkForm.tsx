@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   Textarea,
+  Title,
   rem,
 } from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
@@ -283,13 +284,37 @@ export function ArtworkImageUpload({
   onRemove: () => void;
   theme: MantineTheme;
 }) {
+  const isReplacingImage = Boolean(currentImagePath);
+  const uploadTitle = isReplacingImage
+    ? 'Upload replacement image'
+    : 'Upload artwork image';
+  const uploadHelpText = isReplacingImage
+    ? 'Choose or drop a replacement image. It will replace the current artwork image when you save changes.'
+    : 'Choose or drop the image you want associated with this record.';
+
   return (
     <>
-      {currentImagePath && !uploadedImage ? (
-        <div style={{ paddingTop: '10px' }}>
-          <div className={`${shellClasses.mediaFrame} ${classes.uploadPreview}`}>
-            <Image src={currentImagePath} alt="Current artwork preview" />
+      {currentImagePath ? (
+        <div className={classes.imageComparison}>
+          <div>
+            <Title order={4} className={classes.previewTitle}>
+              Current image
+            </Title>
+            <div className={`${shellClasses.mediaFrame} ${classes.uploadPreview}`}>
+              <Image src={currentImagePath} alt="Current artwork preview" />
+            </div>
           </div>
+
+          {uploadedImage && previewImage ? (
+            <div>
+              <Title order={4} className={classes.previewTitle}>
+                Replacement image
+              </Title>
+              <div className={`${shellClasses.mediaFrame} ${classes.uploadPreview} ${classes.replacementPreview}`}>
+                <Image src={previewImage} alt="Replacement artwork preview" />
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -325,28 +350,32 @@ export function ArtworkImageUpload({
             </Group>
 
             <Text ta="center" fw={700} fz="lg" mt="xl">
-              <Dropzone.Accept>Drop images here</Dropzone.Accept>
+              <Dropzone.Accept>
+                {isReplacingImage ? 'Drop replacement image here' : 'Drop image here'}
+              </Dropzone.Accept>
               <Dropzone.Reject>Images must be less than 30mb</Dropzone.Reject>
-              <Dropzone.Idle>Upload images</Dropzone.Idle>
+              <Dropzone.Idle>{uploadTitle}</Dropzone.Idle>
             </Text>
             <Text ta="center" fz="sm" mt="xs" c="dimmed">
-              Drag n drop images here to upload. We can accept any image type
-              that is less than 30mb in size.
+              {uploadHelpText} Images must be less than 30mb.
             </Text>
           </div>
         </Dropzone>
       ) : null}
 
-      {uploadedImage && previewImage ? (
+      {uploadedImage && previewImage && !currentImagePath ? (
         <div style={{ position: 'relative', paddingTop: '10px', textAlign: 'center' }}>
           <div className={`${shellClasses.mediaFrame} ${classes.uploadPreview}`}>
             <Image src={previewImage} alt="Uploaded artwork preview" />
           </div>
-          <div className={classes.uploadActions}>
-            <Button onClick={onRemove} color="red">
-              Remove
-            </Button>
-          </div>
+        </div>
+      ) : null}
+
+      {uploadedImage ? (
+        <div className={classes.uploadActions}>
+          <Button onClick={onRemove} color="red" variant="light">
+            Remove selected image
+          </Button>
         </div>
       ) : null}
     </>

@@ -6,4 +6,6 @@ merrimack-museum/node_modules/
 
 merrimack-museum/.next/
 
+merrimack-museum/tsconfig.tsbuildinfo
+
 package-lock.json

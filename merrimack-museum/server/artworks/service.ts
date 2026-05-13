@@ -1,5 +1,6 @@
 import { AppError } from "@/server/errors";
 import {
+  countArtworksUsingImagePath,
   createArtwork,
   deleteArtwork,
   findArtworkById,
@@ -9,6 +10,7 @@ import {
   searchArtworks,
   updateArtwork,
 } from "@/server/artworks/repository";
+import { deleteManagedArtworkImage } from "@/server/adapters/storage";
 import type { DatabaseExecutor } from "@/server/db/client";
 import type { ArtworkMutationInput } from "@/server/artworks/types";
 
@@ -72,6 +74,32 @@ export async function addArtworkToCatalog(input: ArtworkMutationInput) {
   return artwork;
 }
 
+async function cleanupReplacedArtworkImage(options: {
+  previousImagePath: string | null;
+  nextImagePath: string | null | undefined;
+}) {
+  if (
+    options.nextImagePath === undefined ||
+    !options.previousImagePath ||
+    options.previousImagePath === options.nextImagePath
+  ) {
+    return;
+  }
+
+  const remainingUsageCount = await countArtworksUsingImagePath(
+    options.previousImagePath,
+  );
+  if (remainingUsageCount > 0) {
+    return;
+  }
+
+  try {
+    await deleteManagedArtworkImage(options.previousImagePath);
+  } catch (error) {
+    console.error("Unable to delete replaced artwork image:", error);
+  }
+}
+
 export async function updateArtworkInCatalog(
   id: number,
   input: ArtworkMutationInput,
@@ -85,6 +113,13 @@ export async function updateArtworkInCatalog(
   const artwork = await updateArtwork(id, input, executor);
   if (!artwork) {
     throw new AppError(500, "Unable to update artwork");
+  }
+
+  if (!executor) {
+    await cleanupReplacedArtworkImage({
+      previousImagePath: existingArtwork.imagePath,
+      nextImagePath: "imagePath" in input ? input.imagePath : undefined,
+    });
   }
 
   return artwork;
