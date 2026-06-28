@@ -1,12 +1,14 @@
 import { sql } from "kysely";
 import { db, type DatabaseExecutor } from "@/server/db/client";
 import {
+  mapRoleToStoredUserType,
   mapStoredUserTypeToRole,
   normalizeStoredText,
 } from "@/server/db/legacy/transforms";
 import type { UserRecord } from "@/server/users/types";
 import {
   normalizeEmail,
+  type AppRole,
 } from "@/shared/types/user";
 
 interface UserRow {
@@ -38,6 +40,45 @@ function userSelectQuery(executor: DatabaseExecutor = db) {
     "users.address as email",
     "roles.user_type as userType",
   ]);
+}
+
+export interface UserSearchOptions {
+  email?: string;
+  role?: AppRole;
+  limit?: number;
+}
+
+export async function searchUsers(
+  options: UserSearchOptions = {},
+  executor: DatabaseExecutor = db,
+) {
+  let query = userSelectQuery(executor).orderBy("users.address", "asc");
+
+  const normalizedEmail = normalizeEmail(options.email ?? "");
+  if (normalizedEmail) {
+    query = query.where(
+      sql<boolean>`lower(${sql.ref("users.address")}) like ${`%${normalizedEmail}%`}`,
+    );
+  }
+
+  if (options.role) {
+    const storedUserType = mapRoleToStoredUserType(options.role);
+
+    if (storedUserType) {
+      query = query.where("roles.user_type", "=", storedUserType);
+    } else {
+      query = query.where(
+        sql<boolean>`coalesce(${sql.ref("roles.user_type")}, '') not in ('Admin', 'FS')`,
+      );
+    }
+  }
+
+  if (options.limit !== undefined) {
+    query = query.limit(options.limit);
+  }
+
+  const rows = await query.execute();
+  return rows.map(mapUserRow);
 }
 
 export async function findUserByEmail(

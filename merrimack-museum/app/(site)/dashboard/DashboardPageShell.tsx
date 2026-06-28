@@ -9,6 +9,8 @@ interface DashboardPageShellProps {
     title: string;
     subtitle?: string;
     backHref?: string;
+    backLabel?: string;
+    onBack?: () => void;
     shellClassName?: string;
     children: ReactNode;
 }
@@ -17,6 +19,8 @@ export default function DashboardPageShell({
     title,
     subtitle,
     backHref = '/dashboard',
+    backLabel = 'Return To Dashboard',
+    onBack,
     shellClassName,
     children,
 }: DashboardPageShellProps) {
@@ -29,9 +33,9 @@ export default function DashboardPageShell({
                     <Button
                         className={classes.returnButton}
                         variant="default"
-                        onClick={() => router.push(backHref)}
+                        onClick={onBack ?? (() => router.push(backHref))}
                     >
-                        Return To Dashboard
+                        {backLabel}
                     </Button>
                 </div>
 

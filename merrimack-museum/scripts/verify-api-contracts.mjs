@@ -83,6 +83,20 @@ const checks = [
     ],
   },
   {
+    file: "app/api/users/route.ts",
+    forbidden: [
+      "address:",
+      "user_type:",
+    ],
+  },
+  {
+    file: "app/api/users/[email]/route.ts",
+    forbidden: [
+      "address:",
+      "user_type:",
+    ],
+  },
+  {
     file: "app/api/users/role/route.ts",
     forbidden: [
       "address:",

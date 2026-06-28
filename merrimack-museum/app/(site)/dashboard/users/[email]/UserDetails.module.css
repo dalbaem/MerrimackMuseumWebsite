@@ -1,0 +1,165 @@
+.panel {
+  max-width: 44rem;
+  padding: 2rem;
+  border-radius: 1.5rem;
+}
+
+.title {
+  color: #08253f;
+}
+
+.subtitle {
+  color: #4f6478;
+  line-height: 1.6;
+}
+
+.infoList {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.infoRow {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(11, 32, 58, 0.08);
+}
+
+.infoLabel {
+  color: rgba(11, 32, 58, 0.58);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.infoValue {
+  color: #0b203a;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.fieldBlock {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  color: #173854;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.selectButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  border-radius: 1rem;
+  background: #f6f9fc;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.selectButton:hover,
+.selectButton[data-expanded] {
+  border-color: rgba(0, 55, 104, 0.35);
+  box-shadow: 0 0 0 3px rgba(0, 55, 104, 0.08);
+  background: #ffffff;
+}
+
+.selectLabel {
+  color: #173854;
+  font-weight: 600;
+}
+
+.selectIcon {
+  color: #4f6478;
+}
+
+.menuDropdown {
+  border-radius: 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.12);
+  box-shadow: 0 18px 40px rgba(4, 24, 49, 0.14);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.saveActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.saveButton {
+  min-height: 3.1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #003768, #0d4a7e);
+  box-shadow: 0 14px 28px rgba(0, 55, 104, 0.24);
+}
+
+.saveButton:disabled {
+  background: #b8c7d6;
+  box-shadow: none;
+}
+
+.backButton {
+  min-height: 3.1rem;
+  border-radius: 999px;
+  color: #0d4a7e;
+}
+
+.dangerButton {
+  min-height: 3.1rem;
+  border-radius: 999px;
+  background: #b42318;
+  box-shadow: 0 14px 28px rgba(180, 35, 24, 0.18);
+}
+
+.dangerButton:hover {
+  background: #a31f15;
+}
+
+.emptyState {
+  max-width: 44rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(11, 32, 58, 0.72);
+}
+
+@media (max-width: 40rem) {
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .infoRow {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actions > *,
+  .saveActions,
+  .saveActions > * {
+    flex: 1;
+  }
+}

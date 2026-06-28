@@ -7,6 +7,7 @@ import {
   createSpy,
   importFreshProjectModule,
   readJsonResponse,
+  routeParams,
 } from "../runtime/test-helpers.mjs";
 import { setModuleMock } from "../runtime/test-helpers.mjs";
 
@@ -201,4 +202,138 @@ test("user role updates forward normalized input for admins", async () => {
     email: "faculty@example.com",
     role: "guest",
   });
+});
+
+test("user search requires admin access", async () => {
+  const searchUsers = createSpy(async () => [sampleUser]);
+  setModuleMock("@/server/auth/requestActor", {
+    namedExports: {
+      requireRole: async () => ({
+        actor: null,
+        response: jsonResponse({ error: "Forbidden" }, 403),
+      }),
+    },
+  });
+  setModuleMock("@/server/users/service", {
+    namedExports: {
+      searchUsers,
+    },
+  });
+
+  const { GET } = await importFreshProjectModule("app/api/users/route.ts");
+
+  const response = await GET(
+    createRouteRequest("http://localhost/api/users?email=faculty&role=faculty"),
+  );
+
+  assert.equal(response.status, 403);
+  assert.deepEqual(await readJsonResponse(response), {
+    error: "Forbidden",
+  });
+  assert.equal(searchUsers.calls.length, 0);
+});
+
+test("user search forwards filters for admins", async () => {
+  const searchUsers = createSpy(async () => [sampleUser]);
+  setModuleMock("@/server/auth/requestActor", {
+    namedExports: {
+      requireRole: async () => ({
+        actor: {
+          email: "admin@example.com",
+          isPreview: false,
+          role: "admin",
+        },
+        response: null,
+      }),
+    },
+  });
+  setModuleMock("@/server/users/service", {
+    namedExports: {
+      searchUsers,
+    },
+  });
+
+  const { GET } = await importFreshProjectModule("app/api/users/route.ts");
+
+  const response = await GET(
+    createRouteRequest("http://localhost/api/users?email=%20Faculty%20&role=faculty"),
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(searchUsers.calls, [
+    [
+      {
+        email: "Faculty",
+        role: "faculty",
+      },
+    ],
+  ]);
+  assert.deepEqual(await readJsonResponse(response), [
+    {
+      email: "faculty@example.com",
+      role: "faculty",
+    },
+  ]);
+});
+
+test("user delete requires admin access", async () => {
+  const deleteUser = createSpy(async () => undefined);
+  setModuleMock("@/server/auth/requestActor", {
+    namedExports: {
+      requireRole: async () => ({
+        actor: null,
+        response: jsonResponse({ error: "Forbidden" }, 403),
+      }),
+    },
+  });
+  setModuleMock("@/server/users/service", {
+    namedExports: {
+      deleteUser,
+    },
+  });
+
+  const { DELETE } = await importFreshProjectModule("app/api/users/[email]/route.ts");
+
+  const response = await DELETE(
+    createRouteRequest("http://localhost/api/users/faculty%40example.com"),
+    routeParams({ email: "faculty%40example.com" }),
+  );
+
+  assert.equal(response.status, 403);
+  assert.deepEqual(await readJsonResponse(response), {
+    error: "Forbidden",
+  });
+  assert.equal(deleteUser.calls.length, 0);
+});
+
+test("user delete forwards normalized route email for admins", async () => {
+  const deleteUser = createSpy(async () => undefined);
+  setModuleMock("@/server/auth/requestActor", {
+    namedExports: {
+      requireRole: async () => ({
+        actor: {
+          email: "admin@example.com",
+          isPreview: false,
+          role: "admin",
+        },
+        response: null,
+      }),
+    },
+  });
+  setModuleMock("@/server/users/service", {
+    namedExports: {
+      deleteUser,
+    },
+  });
+
+  const { DELETE } = await importFreshProjectModule("app/api/users/[email]/route.ts");
+
+  const response = await DELETE(
+    createRouteRequest("http://localhost/api/users/faculty%40example.com"),
+    routeParams({ email: " Faculty%40Example.com " }),
+  );
+
+  assert.equal(response.status, 204);
+  assert.equal(await response.text(), "");
+  assert.deepEqual(deleteUser.calls, [["faculty@example.com"]]);
 });

@@ -8,6 +8,7 @@ import {
   deleteUserByEmail,
   ensureStoredUserTypeId,
   findUserByEmail,
+  searchUsers as searchUserRecords,
   updateStoredUserTypeIdByEmail,
 } from "@/server/users/repository";
 import {
@@ -35,6 +36,13 @@ export async function getUserAccess(email: string) {
 export async function getRoleForEmail(email: string) {
   const user = await findUserByEmail(email);
   return user ? user.role : "guest";
+}
+
+export async function searchUsers(options: {
+  email?: string;
+  role?: AppRole;
+}) {
+  return searchUserRecords(options);
 }
 
 async function savePrivilegedUser(
@@ -91,20 +99,19 @@ export async function ensurePrivilegedUser(
   return savePrivilegedUser(email, role, executor);
 }
 
-async function downgradeStoredUserToGuest(email: string) {
+async function saveGuestUser(email: string) {
   const normalizedEmail = normalizeEmail(email);
 
   return db.transaction().execute(async (trx) => {
     const existingUser = await findUserByEmail(normalizedEmail, trx);
     if (!existingUser) {
-      return buildGuestAccess(normalizedEmail);
-    }
+      const createdUser = await createUser(normalizedEmail, null, trx);
 
-    const requestCount = await countMoveRequestsForUserId(existingUser.id, trx);
+      if (!createdUser) {
+        throw new AppError(500, "Unable to create user");
+      }
 
-    if (requestCount === 0) {
-      await deleteUserByEmail(normalizedEmail, trx);
-      return buildGuestAccess(normalizedEmail);
+      return createdUser;
     }
 
     const updatedUser = await updateStoredUserTypeIdByEmail(
@@ -123,8 +130,31 @@ async function downgradeStoredUserToGuest(email: string) {
 
 export async function updateUserRole(email: string, role: AppRole) {
   if (role === "guest") {
-    return downgradeStoredUserToGuest(email);
+    return saveGuestUser(email);
   }
 
   return savePrivilegedUser(email, role);
+}
+
+export async function deleteUser(email: string) {
+  const normalizedEmail = normalizeEmail(email);
+
+  await db.transaction().execute(async (trx) => {
+    const existingUser = await findUserByEmail(normalizedEmail, trx);
+
+    if (!existingUser) {
+      throw new AppError(404, "User not found");
+    }
+
+    const requestCount = await countMoveRequestsForUserId(existingUser.id, trx);
+
+    if (requestCount > 0) {
+      throw new AppError(
+        409,
+        "This user has move request history and cannot be deleted. Change their privilege to Guest instead.",
+      );
+    }
+
+    await deleteUserByEmail(normalizedEmail, trx);
+  });
 }

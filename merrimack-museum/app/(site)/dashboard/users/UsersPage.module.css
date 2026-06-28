@@ -1,3 +1,10 @@
+.pageGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 1.25rem;
+  align-items: start;
+}
+
 .panel {
   padding: 2rem;
   border-radius: 1.5rem;
@@ -11,6 +18,14 @@
   max-width: 40rem;
   color: #4f6478;
   line-height: 1.6;
+}
+
+.searchForm {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(12rem, 17rem);
+  gap: 1rem;
+  align-items: end;
+  margin-top: 1.5rem;
 }
 
 .formGrid {
@@ -28,6 +43,10 @@
   border-radius: 1rem;
   border: 1px solid rgba(11, 32, 58, 0.12);
   background: #f6f9fc;
+}
+
+.emailField :global(.mantine-Input-section) {
+  color: #52718d;
 }
 
 .fieldBlock {
@@ -79,22 +98,119 @@
   box-shadow: 0 18px 40px rgba(4, 24, 49, 0.14);
 }
 
-.submitRow {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 0.5rem;
-}
-
-.submitButton {
-  min-width: 10rem;
+.primaryButton {
+  min-height: 3.1rem;
   border-radius: 999px;
   background: linear-gradient(135deg, #003768, #0d4a7e);
   box-shadow: 0 14px 28px rgba(0, 55, 104, 0.24);
 }
 
-.submitButton:disabled {
+.primaryButton:disabled {
   background: #b8c7d6;
   box-shadow: none;
+}
+
+.resultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(11, 32, 58, 0.1);
+}
+
+.resultsTitle {
+  color: #173854;
+}
+
+.resultCount {
+  color: #5f7185;
+}
+
+.userResults {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 34rem;
+  overflow-y: auto;
+  margin-top: 0.75rem;
+  padding-right: 0.25rem;
+}
+
+.userResults::-webkit-scrollbar {
+  width: 10px;
+}
+
+.userResults::-webkit-scrollbar-thumb {
+  background: rgba(11, 32, 58, 0.22);
+  border-radius: 999px;
+}
+
+.userResult {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(11, 32, 58, 0.1);
+  border-radius: 0.875rem;
+  background: rgba(245, 247, 250, 0.92);
+  color: #173854;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.userResult:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 55, 104, 0.28);
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(4, 24, 49, 0.08);
+}
+
+.userSummary {
+  min-width: 0;
+}
+
+.userSummary p {
+  overflow-wrap: anywhere;
+}
+
+.editCue {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: #0d4a7e;
+  font-weight: 800;
+}
+
+.permissionType {
+  color: #4f6478;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stateBlock {
+  display: grid;
+  min-height: 8rem;
+  place-items: center;
+  margin-top: 0.75rem;
+  border: 1px dashed rgba(11, 32, 58, 0.16);
+  border-radius: 1rem;
+  color: #5f7185;
+  font-weight: 700;
+}
+
+@media (max-width: 62rem) {
+  .pageGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 48rem) {
@@ -103,11 +219,17 @@
     border-radius: 1.25rem;
   }
 
-  .submitRow {
-    justify-content: stretch;
+  .searchForm,
+  .userResult {
+    grid-template-columns: 1fr;
   }
 
-  .submitButton {
+  .permissionType,
+  .editCue {
+    justify-self: start;
+  }
+
+  .primaryButton {
     width: 100%;
   }
 }
