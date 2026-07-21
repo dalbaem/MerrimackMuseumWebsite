@@ -1,4 +1,5 @@
 import type { AppRole } from "@/shared/types/user";
+import type { MoveRequestStatus } from "@/shared/types/moveRequest";
 
 export interface ArtworkDto {
   id: number;
@@ -32,7 +33,9 @@ export interface MoveRequestDto {
     email: string;
   };
   artwork: ArtworkDto;
+  fromLocation: string | null;
   toLocation: string | null;
+  status: MoveRequestStatus;
   isPending: boolean;
   isApproved: boolean;
   isComplete: boolean;

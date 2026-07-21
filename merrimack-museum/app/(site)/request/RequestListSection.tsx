@@ -62,6 +62,9 @@ export default function RequestListSection({
                     ) : null}
                   </Group>
                   <Text size="sm" mt="sm">
+                    From: {item.fromLocation || item.artwork.locationName || "Unknown location"}
+                  </Text>
+                  <Text size="sm">
                     Destination: {item.toLocation || "Not provided"}
                   </Text>
                   <Text c="dimmed" size="xs" mt="xs">

@@ -7,6 +7,7 @@ import {
   createMoveRequest,
   deleteMoveRequest,
   findMoveRequestById,
+  listMoveRequestsByArtworkId,
   listMoveRequestsByState,
   listMoveRequestsByUserEmail,
   updateMoveRequestFields,
@@ -14,6 +15,7 @@ import {
 import { findUserByEmail } from "@/server/users/repository";
 import { ensurePrivilegedUser } from "@/server/users/service";
 import type { MoveRequestCreateInput } from "@/server/moveRequests/types";
+import type { MoveRequestCompletionStatus } from "@/shared/types/moveRequest";
 import { normalizeEmail, type AppRole } from "@/shared/types/user";
 
 function normalizeRequestText(value: unknown) {
@@ -65,7 +67,11 @@ export async function createMuseumMoveRequest(
   return db.transaction().execute(async (trx) => {
     const artwork = await trx
       .selectFrom("artwork")
-      .select("idArtwork")
+      .leftJoin("location as location", "location.idLocation", "artwork.location_id")
+      .select([
+        "artwork.idArtwork as id",
+        "location.Location as locationName",
+      ])
       .where("idArtwork", "=", input.artworkId)
       .forUpdate()
       .executeTakeFirst();
@@ -91,8 +97,10 @@ export async function createMuseumMoveRequest(
     const createdRequest = await createMoveRequest(
       {
         artworkId: input.artworkId,
+        fromLocation: normalizeRequestText(artwork.locationName),
         toLocation: normalizedDestination,
         requestNotes: normalizeRequestText(input.requestNotes),
+        status: "pending",
         userId: user.id,
         requestedAt: input.requestedAt,
       },
@@ -105,6 +113,10 @@ export async function createMuseumMoveRequest(
 
 export async function getRequestsForUser(email: string) {
   return listMoveRequestsByUserEmail(email);
+}
+
+export async function getRequestsForArtwork(artworkId: number) {
+  return listMoveRequestsByArtworkId(artworkId);
 }
 
 export async function getMoveRequestByIdOrThrow(id: number) {
@@ -133,8 +145,12 @@ export async function editPendingMoveRequest(
 ) {
   const request = await getMoveRequestByIdOrThrow(id);
 
-  if (request.isComplete) {
-    throw new AppError(400, "Completed requests cannot be edited.");
+  if (
+    request.status === "completed" ||
+    request.status === "denied" ||
+    request.status === "canceled_in_movement"
+  ) {
+    throw new AppError(400, "Finished requests cannot be edited.");
   }
 
   const updatedRequest = await updateMoveRequestFields(id, {
@@ -157,7 +173,7 @@ export async function deletePendingMoveRequest(
 ) {
   const request = await getMoveRequestByIdOrThrow(id);
 
-  if (!request.isPending || request.isComplete) {
+  if (request.status !== "pending") {
     throw new AppError(400, "Only pending requests can be deleted.");
   }
 
@@ -181,11 +197,7 @@ export async function reviewMoveRequest(
 ) {
   const request = await getMoveRequestByIdOrThrow(id);
 
-  if (request.isComplete) {
-    throw new AppError(400, "Completed requests cannot be updated.");
-  }
-
-  if (!request.isPending) {
+  if (request.status !== "pending") {
     throw new AppError(400, "Only pending requests can be reviewed.");
   }
 
@@ -198,16 +210,20 @@ export async function reviewMoveRequest(
     }
 
     const updatedRequest = await updateMoveRequestFields(id, {
+      status: "in_movement",
       isPending: false,
       isApproved: true,
+      isComplete: false,
     });
 
     return requireStoredMoveRequest(updatedRequest, "Unable to update move request.");
   }
 
   const updatedRequest = await updateMoveRequestFields(id, {
+    status: "denied",
     isPending: false,
     isApproved: false,
+    isComplete: false,
   });
 
   return requireStoredMoveRequest(updatedRequest, "Unable to update move request.");
@@ -215,25 +231,22 @@ export async function reviewMoveRequest(
 
 export async function updateMoveProgress(
   id: number,
-  completionStatus: "complete" | "sendback",
+  completionStatus: MoveRequestCompletionStatus,
   artworkId?: number,
   toLocation?: string | null,
 ) {
   const request = await getMoveRequestByIdOrThrow(id);
 
-  if (request.isComplete) {
-    throw new AppError(400, "Completed requests cannot be updated.");
-  }
-
-  if (request.isPending || !request.isApproved) {
+  if (request.status !== "in_movement") {
     throw new AppError(400, "Only approved requests in movement can be updated.");
   }
 
-  if (completionStatus === "sendback") {
+  if (completionStatus === "sendback" || completionStatus === "cancel") {
     const updatedRequest = await updateMoveRequestFields(id, {
+      status: "canceled_in_movement",
       isComplete: false,
       isApproved: false,
-      isPending: true,
+      isPending: false,
     });
 
     return requireStoredMoveRequest(updatedRequest, "Unable to update move request.");
@@ -286,7 +299,9 @@ export async function updateMoveProgress(
     const updatedRequest = await updateMoveRequestFields(
       id,
       {
+        status: "completed",
         isComplete: true,
+        isApproved: true,
         isPending: false,
         toLocation: normalizedLocation,
       },

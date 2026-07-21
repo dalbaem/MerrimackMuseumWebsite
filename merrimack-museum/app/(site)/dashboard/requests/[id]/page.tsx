@@ -13,6 +13,7 @@ import {
 import type { MoveRequestDto } from '@/shared/types/api';
 import {
     formatMoveRequestDateTime,
+    getMoveRequestStatusLabel,
     MOVE_REQUEST_NOTES_MAX_LENGTH,
 } from '@/shared/types/moveRequest';
 
@@ -143,16 +144,17 @@ export default function RequestDetailsPage() {
         );
     };
 
-    const handleSendBack = async () => {
+    const handleCancelMove = async () => {
         await runRequestAction(request?.id, (requestId) =>
             applyMoveRequestCompletion(requestId, {
-                completionStatus: 'sendback',
+                completionStatus: 'cancel',
             }),
         );
     };
 
     const submittedWithoutDestination = !request?.toLocation?.trim();
-    const cannotApproveWithoutDestination = request?.isPending && !destination.trim();
+    const cannotApproveWithoutDestination = request?.status === 'pending' && !destination.trim();
+    const canEditRequest = request?.status === 'pending' || request?.status === 'in_movement';
 
     if (isLoading) {
         return (
@@ -183,17 +185,12 @@ export default function RequestDetailsPage() {
                         <Text><strong>Artist:</strong> {request.artwork.artistName || '-'}</Text>
                         <Text><strong>Requested By:</strong> {request.user.email || '-'}</Text>
                         <Text><strong>Requested On:</strong> {formatMoveRequestDateTime(request.requestedAt, '-')}</Text>
+                        <Text><strong>From Location:</strong> {request.fromLocation || '-'}</Text>
                         <Text><strong>Current Location:</strong> {request.artwork.locationName || '-'}</Text>
                         <Text><strong>Submitted Destination:</strong> {request.toLocation || 'To be entered during approval'}</Text>
                         <Text>
                             <strong>Status:</strong>{' '}
-                            {request.isComplete
-                                ? 'Completed'
-                                : request.isApproved
-                                    ? 'Approved / In Progress'
-                                    : request.isPending
-                                        ? 'Pending'
-                                        : 'Declined'}
+                            {getMoveRequestStatusLabel(request.status)}
                         </Text>
                     </Stack>
                     {request.artwork.imagePath ? (
@@ -217,6 +214,7 @@ export default function RequestDetailsPage() {
                         <TextInput
                             label="Destination"
                             value={destination}
+                            disabled={!canEditRequest}
                             onChange={(event) => {
                                 setDestination(event.currentTarget.value);
                                 if (errorMessage) {
@@ -224,7 +222,7 @@ export default function RequestDetailsPage() {
                                 }
                             }}
                         />
-                        {request.isPending && submittedWithoutDestination ? (
+                        {request.status === 'pending' && submittedWithoutDestination ? (
                             <Text size="sm" c="dimmed">
                                 This request was submitted without a destination. Enter one before approving it.
                             </Text>
@@ -236,6 +234,7 @@ export default function RequestDetailsPage() {
                             minRows={5}
                             autosize
                             value={requestNotes}
+                            disabled={!canEditRequest}
                             onChange={(event) => {
                                 setRequestNotes(event.currentTarget.value);
                                 if (errorMessage) {
@@ -244,10 +243,12 @@ export default function RequestDetailsPage() {
                             }}
                         />
                         <Group>
-                            <Button onClick={saveEdits} variant="light">
-                                Save Edits
-                            </Button>
-                            {request.isPending ? (
+                            {canEditRequest ? (
+                                <Button onClick={saveEdits} variant="light">
+                                    Save Edits
+                                </Button>
+                            ) : null}
+                            {request.status === 'pending' ? (
                                 <>
                                     <Button
                                         color="green"
@@ -261,13 +262,13 @@ export default function RequestDetailsPage() {
                                     </Button>
                                 </>
                             ) : null}
-                            {request.isApproved && !request.isComplete ? (
+                            {request.status === 'in_movement' ? (
                                 <>
                                     <Button color="green" onClick={handleComplete}>
                                         Complete
                                     </Button>
-                                    <Button color="orange" onClick={handleSendBack}>
-                                        Send Back
+                                    <Button color="orange" onClick={handleCancelMove}>
+                                        Cancel Move
                                     </Button>
                                 </>
                             ) : null}

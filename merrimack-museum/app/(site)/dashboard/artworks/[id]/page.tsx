@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Alert, Badge, Button, Group, Image, Modal, Text, Title, useMantineTheme } from '@mantine/core';
+import { IconHistory } from '@tabler/icons-react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardPageShell from '../../DashboardPageShell';
 import shellClasses from '../../DashboardPageShell.module.css';
@@ -10,7 +11,8 @@ import {
     fetchArtworkById,
     updateArtwork,
 } from '@/lib/api/artworks';
-import type { ArtworkDto } from '@/shared/types/api';
+import { fetchMoveRequestsForArtwork } from '@/lib/api/moveRequests';
+import type { ArtworkDto, MoveRequestDto } from '@/shared/types/api';
 import {
     ArtworkFields,
     ArtworkImageUpload,
@@ -20,6 +22,7 @@ import {
     toArtworkFormValues,
     useArtworkImageUpload,
 } from '../artworkForm';
+import MovementRequestHistoryModal from '../../MovementRequestHistoryModal';
 import pageClasses from './ArtworkDetails.module.css';
 function getArtworkDetails(values: ArtworkFormValues) {
     return [
@@ -46,6 +49,10 @@ export default function ArtworkDetailsPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [imageOpen, setImageOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [historyOpen, setHistoryOpen] = useState(false);
+    const [historyRequests, setHistoryRequests] = useState<MoveRequestDto[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [historyError, setHistoryError] = useState<string | null>(null);
     const [pageError, setPageError] = useState<string | null>(null);
     const {
         uploadedImage,
@@ -117,6 +124,31 @@ export default function ArtworkDetailsPage() {
                     ? error.message
                     : 'Unable to delete that artwork right now.',
             );
+        }
+    };
+
+    const openMovementHistory = async () => {
+        if (!selectedArtwork) {
+            return;
+        }
+
+        setHistoryOpen(true);
+        setIsLoadingHistory(true);
+        setHistoryError(null);
+
+        try {
+            const requests = await fetchMoveRequestsForArtwork(selectedArtwork.id);
+            setHistoryRequests(requests);
+        } catch (error) {
+            console.error('Error loading artwork movement request history:', error);
+            setHistoryRequests([]);
+            setHistoryError(
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to load movement request history right now.',
+            );
+        } finally {
+            setIsLoadingHistory(false);
         }
     };
 
@@ -231,6 +263,13 @@ export default function ArtworkDetailsPage() {
 
                                 <div className={pageClasses.editActions}>
                                     <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                                    <Button
+                                        variant="light"
+                                        leftSection={<IconHistory size={16} stroke={1.8} />}
+                                        onClick={openMovementHistory}
+                                    >
+                                        Movement Request History
+                                    </Button>
                                 </div>
                             </>
                         )}
@@ -265,6 +304,15 @@ export default function ArtworkDetailsPage() {
                     </Button>
                 </Group>
             </Modal>
+
+            <MovementRequestHistoryModal
+                opened={historyOpen}
+                onClose={() => setHistoryOpen(false)}
+                title="Movement Request History"
+                requests={historyRequests}
+                isLoading={isLoadingHistory}
+                error={historyError}
+            />
         </DashboardPageShell>
     );
 }

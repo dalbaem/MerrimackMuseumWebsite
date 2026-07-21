@@ -142,11 +142,9 @@ export function useRequestPageData(email: string) {
     selectedArtwork,
   );
 
-  const pendingRequests = userRequests.filter(
-    (item) => item.isPending && !item.isComplete,
-  );
+  const pendingRequests = userRequests.filter((item) => item.status === "pending");
   const requestsInMovement = userRequests.filter(
-    (item) => item.isApproved && !item.isComplete,
+    (item) => item.status === "in_movement",
   );
 
   const fetchRequestPageData = async (

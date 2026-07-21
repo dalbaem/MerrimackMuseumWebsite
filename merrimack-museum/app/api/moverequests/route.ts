@@ -19,6 +19,7 @@ import {
   createMuseumMoveRequest,
   getApprovedMoveRequests,
   getPendingMoveRequests,
+  getRequestsForArtwork,
   getRequestsForUser,
 } from "@/server/moveRequests/service";
 import { toMoveRequestDto } from "@/server/http/presenters";
@@ -27,13 +28,20 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const { email, state } = readQueryParams(
+    const { artworkId, email, state } = readQueryParams(
       req.nextUrl.searchParams,
       moveRequestListQuerySchema,
     );
 
-    if ((email && state) || (!email && !state)) {
-      throw new AppError(400, "Provide either a move request state or email filter.");
+    const providedFilterCount = [artworkId, email, state].filter(
+      (value) => value !== undefined,
+    ).length;
+
+    if (providedFilterCount !== 1) {
+      throw new AppError(
+        400,
+        "Provide exactly one move request filter: state, email, or artworkId.",
+      );
     }
 
     if (state) {
@@ -47,13 +55,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(requests.map(toMoveRequestDto));
     }
 
+    if (artworkId) {
+      await requireGuardActor(requireRole(req, ["admin"]));
+
+      const requests = await getRequestsForArtwork(artworkId);
+      return NextResponse.json(requests.map(toMoveRequestDto));
+    }
+
     const actor = await getRequestActor(req);
     if (!actor) {
       throw new AppError(401, "Authentication required");
     }
 
     if (!email) {
-      throw new AppError(400, "Provide either a move request state or email filter.");
+      throw new AppError(
+        400,
+        "Provide exactly one move request filter: state, email, or artworkId.",
+      );
     }
 
     if (actor.role !== "admin" && !ensureActorMatchesEmail(actor, email)) {

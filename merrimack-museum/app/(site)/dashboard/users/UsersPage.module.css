@@ -148,7 +148,7 @@
 
 .userResult {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(16rem, auto);
   gap: 1rem;
   align-items: center;
   width: 100%;
@@ -159,7 +159,6 @@
   color: #173854;
   text-align: left;
   text-decoration: none;
-  cursor: pointer;
   transition:
     border-color 140ms ease,
     background-color 140ms ease,
@@ -188,6 +187,13 @@
   align-items: center;
   color: #0d4a7e;
   font-weight: 800;
+}
+
+.userActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .permissionType {
@@ -225,7 +231,8 @@
   }
 
   .permissionType,
-  .editCue {
+  .editCue,
+  .userActions {
     justify-self: start;
   }
 

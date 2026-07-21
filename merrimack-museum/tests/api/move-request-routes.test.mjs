@@ -31,7 +31,9 @@ const sampleMoveRequest = {
     categoryName: "Painting",
     imagePath: "uploads/river-study.jpg",
   },
+  fromLocation: "Reading Room",
   toLocation: "Gallery Hall",
+  status: "pending",
   isPending: true,
   isApproved: false,
   isComplete: false,
@@ -67,6 +69,7 @@ test("move request list rejects mixed state and email filters", async () => {
       createMuseumMoveRequest: async () => sampleMoveRequest,
       getApprovedMoveRequests: async () => [],
       getPendingMoveRequests: async () => [],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser: async () => [],
     },
   });
@@ -81,7 +84,7 @@ test("move request list rejects mixed state and email filters", async () => {
 
   assert.equal(response.status, 400);
   assert.deepEqual(await readJsonResponse(response), {
-    error: "Provide either a move request state or email filter.",
+    error: "Provide exactly one move request filter: state, email, or artworkId.",
   });
 });
 
@@ -101,6 +104,7 @@ test("move request list requires authentication for email-scoped queries", async
       createMuseumMoveRequest: async () => sampleMoveRequest,
       getApprovedMoveRequests: async () => [],
       getPendingMoveRequests: async () => [],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser: async () => [],
     },
   });
@@ -138,6 +142,7 @@ test("move request list allows self-service email queries", async () => {
       createMuseumMoveRequest: async () => sampleMoveRequest,
       getApprovedMoveRequests: async () => [sampleMoveRequest],
       getPendingMoveRequests: async () => [sampleMoveRequest],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser,
     },
   });
@@ -150,6 +155,43 @@ test("move request list allows self-service email queries", async () => {
 
   assert.equal(response.status, 200);
   assert.deepEqual(getRequestsForUser.calls, [["faculty@example.com"]]);
+  assert.deepEqual(await readJsonResponse(response), [sampleMoveRequest]);
+});
+
+test("move request list allows admins to query artwork history", async () => {
+  const getRequestsForArtwork = createSpy(async () => [sampleMoveRequest]);
+  setModuleMock("@/server/auth/requestActor", {
+    namedExports: {
+      ensureActorMatchesEmail: () => false,
+      getRequestActor: async () => null,
+      requireRole: async () => ({
+        actor: {
+          email: "admin@example.com",
+          isPreview: false,
+          role: "admin",
+        },
+        response: null,
+      }),
+    },
+  });
+  setModuleMock("@/server/moveRequests/service", {
+    namedExports: {
+      createMuseumMoveRequest: async () => sampleMoveRequest,
+      getApprovedMoveRequests: async () => [],
+      getPendingMoveRequests: async () => [],
+      getRequestsForArtwork,
+      getRequestsForUser: async () => [],
+    },
+  });
+
+  const { GET } = await importFreshProjectModule("app/api/moverequests/route.ts");
+
+  const response = await GET(
+    createRouteRequest("http://localhost/api/moverequests?artworkId=7"),
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(getRequestsForArtwork.calls, [[7]]);
   assert.deepEqual(await readJsonResponse(response), [sampleMoveRequest]);
 });
 
@@ -174,6 +216,7 @@ test("move request creation forbids faculty requests for other users", async () 
       createMuseumMoveRequest,
       getApprovedMoveRequests: async () => [],
       getPendingMoveRequests: async () => [],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser: async () => [],
     },
   });
@@ -218,6 +261,7 @@ test("move request creation allows admins and forwards normalized input", async 
       createMuseumMoveRequest,
       getApprovedMoveRequests: async () => [],
       getPendingMoveRequests: async () => [],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser: async () => [],
     },
   });
@@ -279,6 +323,7 @@ test("move request creation allows requests without a destination", async () => 
       createMuseumMoveRequest,
       getApprovedMoveRequests: async () => [],
       getPendingMoveRequests: async () => [],
+      getRequestsForArtwork: async () => [],
       getRequestsForUser: async () => [],
     },
   });

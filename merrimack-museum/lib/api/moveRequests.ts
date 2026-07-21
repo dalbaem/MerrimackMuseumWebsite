@@ -19,10 +19,15 @@ interface UpdateMoveRequestInput {
   toLocation?: string | null;
 }
 function buildMoveRequestListPath(params: {
+  artworkId?: number | string;
   email?: string;
   state?: MoveRequestListState;
 }) {
   const searchParams = new URLSearchParams();
+
+  if (params.artworkId) {
+    searchParams.set("artworkId", params.artworkId.toString());
+  }
 
   if (params.email) {
     searchParams.set("email", params.email);
@@ -54,6 +59,15 @@ export async function fetchMoveRequestsForUser(email: string) {
   return requestJson<MoveRequestDto[]>(buildMoveRequestListPath({ email }), {
     method: "GET",
   });
+}
+
+export async function fetchMoveRequestsForArtwork(artworkId: number | string) {
+  return requestJson<MoveRequestDto[]>(
+    buildMoveRequestListPath({ artworkId }),
+    {
+      method: "GET",
+    },
+  );
 }
 
 export async function fetchMoveRequestById(requestId: string | number) {

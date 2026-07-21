@@ -21,6 +21,7 @@ import {
 import type { ArtworkDto, MoveRequestDto } from "@/shared/types/api";
 import {
   formatMoveRequestDateTime,
+  getMoveRequestStatusLabel,
   type MoveRequestCompletionActionInput,
 } from "@/shared/types/moveRequest";
 import pageClasses from "./DashboardHome.module.css";
@@ -267,8 +268,10 @@ function matchesRequestSearch(item: MoveRequestDto, rawSearchTerm: string) {
     item.artwork.title,
     item.artwork.artistName,
     item.user.email,
+    item.fromLocation,
     item.artwork.locationName,
     item.toLocation,
+    getMoveRequestStatusLabel(item.status),
     formatMoveRequestDateTime(item.requestedAt, "-"),
   ];
 
@@ -544,9 +547,12 @@ function RequestManagerList({
               {item.user.email}
             </Text>
             <Text size="sm">
-              Current: {item.artwork.locationName || "Unknown location"}
+              From: {item.fromLocation || item.artwork.locationName || "Unknown location"}
             </Text>
             <Text size="sm">To: {item.toLocation || "Unknown location"}</Text>
+            <Text size="sm">
+              Status: {getMoveRequestStatusLabel(item.status)}
+            </Text>
             <Text size="sm">
               Date: {formatMoveRequestDateTime(item.requestedAt, "-")}
             </Text>
@@ -578,14 +584,14 @@ function RequestManagerList({
                   <Button
                     color="orange"
                     size="compact-sm"
-                    loading={activeMovementAction === `sendback-${item.id}`}
+                    loading={activeMovementAction === `cancel-${item.id}`}
                     onClick={() =>
-                      void onRunMovementAction(`sendback-${item.id}`, item.id, {
-                        completionStatus: "sendback",
+                      void onRunMovementAction(`cancel-${item.id}`, item.id, {
+                        completionStatus: "cancel",
                       })
                     }
                   >
-                    Send Back
+                    Cancel Move
                   </Button>
                 </>
               ) : null}

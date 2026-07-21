@@ -16,13 +16,16 @@ import { useForm } from '@mantine/form';
 import {
   IconChevronDown,
   IconEdit,
+  IconHistory,
   IconPlus,
   IconSearch,
 } from '@tabler/icons-react';
 import Link from 'next/link';
+import { fetchMoveRequestsForUser } from '@/lib/api/moveRequests';
 import { searchUsers, updateUserRole } from '@/lib/api/users';
-import type { UserDto } from '@/shared/types/api';
+import type { MoveRequestDto, UserDto } from '@/shared/types/api';
 import DashboardPageShell from '../DashboardPageShell';
+import MovementRequestHistoryModal from '../MovementRequestHistoryModal';
 import shellClasses from '../DashboardPageShell.module.css';
 import {
   getRoleLabel,
@@ -42,6 +45,11 @@ export default function UsersPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyTitle, setHistoryTitle] = useState('Movement Request History');
+  const [historyRequests, setHistoryRequests] = useState<MoveRequestDto[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [searchEmail, setSearchEmail] = useState('');
   const [searchRoleMenuOpened, setSearchRoleMenuOpened] = useState(false);
   const [addRoleMenuOpened, setAddRoleMenuOpened] = useState(false);
@@ -131,6 +139,28 @@ export default function UsersPage() {
     }
   };
 
+  const openMovementHistory = async (email: string) => {
+    setHistoryTitle(`Movement Request History - ${email}`);
+    setHistoryOpen(true);
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+
+    try {
+      const requests = await fetchMoveRequestsForUser(email);
+      setHistoryRequests(requests);
+    } catch (error) {
+      console.error('Error loading user movement request history:', error);
+      setHistoryRequests([]);
+      setHistoryError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to load movement request history right now.',
+      );
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
   const resultLabel =
     filteredUsers.length === 1 ? '1 user' : `${filteredUsers.length} users`;
 
@@ -144,7 +174,7 @@ export default function UsersPage() {
             </Title>
 
             <Text className={classes.subtitle} mt="xs">
-              Search by email, then select a user to edit their privilege role.
+              Search by email, then edit privileges or review movement history.
             </Text>
 
             <div className={classes.searchForm}>
@@ -227,10 +257,9 @@ export default function UsersPage() {
             ) : (
               <div className={classes.userResults}>
                 {filteredUsers.map((user) => (
-                  <Link
+                  <div
                     key={`${user.email}-${user.role}`}
                     className={classes.userResult}
-                    href={getUserDetailsHref(user.email)}
                   >
                     <div className={classes.userSummary}>
                       <Text fw={800}>{user.email}</Text>
@@ -238,11 +267,26 @@ export default function UsersPage() {
                     <span className={classes.permissionType}>
                       {getRoleLabel(user.role)}
                     </span>
-                    <span className={classes.editCue}>
-                      <IconEdit size={17} stroke={1.8} />
-                      Edit
-                    </span>
-                  </Link>
+                    <div className={classes.userActions}>
+                      <Button
+                        size="xs"
+                        variant="light"
+                        leftSection={<IconHistory size={16} stroke={1.8} />}
+                        onClick={() => void openMovementHistory(user.email)}
+                      >
+                        Request History
+                      </Button>
+                      <Button
+                        component={Link}
+                        href={getUserDetailsHref(user.email)}
+                        size="xs"
+                        variant="subtle"
+                        leftSection={<IconEdit size={16} stroke={1.8} />}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -338,6 +382,15 @@ export default function UsersPage() {
           </div>
         </div>
       </Container>
+
+      <MovementRequestHistoryModal
+        opened={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title={historyTitle}
+        requests={historyRequests}
+        isLoading={isLoadingHistory}
+        error={historyError}
+      />
     </DashboardPageShell>
   );
 }

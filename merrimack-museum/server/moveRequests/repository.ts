@@ -13,11 +13,17 @@ import type {
 import {
   normalizeEmail,
 } from "@/shared/types/user";
+import {
+  getMoveRequestStatusFromFlags,
+  type MoveRequestStatus,
+} from "@/shared/types/moveRequest";
 import type { UserRecord } from "@/server/users/types";
 
 interface MoveRequestRow {
   id: number;
+  fromLocation: string | null;
   toLocation: string | null;
+  status: string | null;
   isPending: number;
   isApproved: number;
   isComplete: number;
@@ -49,6 +55,14 @@ function booleanToTinyInt(value: boolean | null | undefined) {
   return value ? 1 : 0;
 }
 
+function getMoveRequestFlagsForStatus(status: MoveRequestStatus) {
+  return {
+    isPending: status === "pending",
+    isApproved: status === "in_movement" || status === "completed",
+    isComplete: status === "completed",
+  };
+}
+
 function moveRequestBaseQuery(executor: DatabaseExecutor = db) {
   return executor
     .selectFrom("move_request as move_request")
@@ -65,7 +79,9 @@ function moveRequestBaseQuery(executor: DatabaseExecutor = db) {
 function moveRequestSelectQuery(executor: DatabaseExecutor = db) {
   return moveRequestBaseQuery(executor).select([
     "move_request.idmove_request as id",
+    "move_request.from_location as fromLocation",
     "move_request.to_location as toLocation",
+    "move_request.status as status",
     "move_request.is_pending as isPending",
     "move_request.is_approved as isApproved",
     "move_request.is_complete as isComplete",
@@ -119,14 +135,27 @@ function mapUserFromMoveRequestRow(row: MoveRequestRow): UserRecord {
 }
 
 function mapMoveRequestRow(row: MoveRequestRow): MoveRequestRecord {
+  const legacyIsPending = tinyIntToBoolean(row.isPending);
+  const legacyIsApproved = tinyIntToBoolean(row.isApproved);
+  const legacyIsComplete = tinyIntToBoolean(row.isComplete);
+  const status = getMoveRequestStatusFromFlags({
+    isApproved: legacyIsApproved,
+    isComplete: legacyIsComplete,
+    isPending: legacyIsPending,
+    status: normalizeStoredText(row.status),
+  });
+  const flags = getMoveRequestFlagsForStatus(status);
+
   return {
     id: row.id,
     user: mapUserFromMoveRequestRow(row),
     artwork: mapArtworkFromMoveRequestRow(row),
+    fromLocation: normalizeStoredText(row.fromLocation),
     toLocation: normalizeStoredText(row.toLocation),
-    isPending: tinyIntToBoolean(row.isPending),
-    isApproved: tinyIntToBoolean(row.isApproved),
-    isComplete: tinyIntToBoolean(row.isComplete),
+    status,
+    isPending: flags.isPending,
+    isApproved: flags.isApproved,
+    isComplete: flags.isComplete,
     requestNotes: normalizeStoredText(row.comments) || "",
     requestedAt: row.requestedAt,
   };
@@ -146,6 +175,18 @@ export async function listMoveRequestsByUserEmail(
   return rows.map(mapMoveRequestRow);
 }
 
+export async function listMoveRequestsByArtworkId(
+  artworkId: number,
+  executor: DatabaseExecutor = db,
+) {
+  const rows = await moveRequestSelectQuery(executor)
+    .where("move_request.artwork_id", "=", artworkId)
+    .orderBy("move_request.time_stamp", "desc")
+    .execute();
+
+  return rows.map(mapMoveRequestRow);
+}
+
 export async function listMoveRequestsByState(
   state: "pending" | "approved",
   executor: DatabaseExecutor = db,
@@ -156,20 +197,9 @@ export async function listMoveRequestsByState(
   );
 
   if (state === "pending") {
-    query = query.where((expressionBuilder) =>
-      expressionBuilder.and([
-        expressionBuilder.eb("move_request.is_pending", "=", 1),
-        expressionBuilder.eb("move_request.is_complete", "=", 0),
-      ]),
-    );
+    query = query.where("move_request.status", "=", "pending");
   } else {
-    query = query.where((expressionBuilder) =>
-      expressionBuilder.and([
-        expressionBuilder.eb("move_request.is_pending", "=", 0),
-        expressionBuilder.eb("move_request.is_approved", "=", 1),
-        expressionBuilder.eb("move_request.is_complete", "=", 0),
-      ]),
-    );
+    query = query.where("move_request.status", "=", "in_movement");
   }
 
   const rows = await query.execute();
@@ -197,12 +227,7 @@ export async function countActiveMoveRequestsForArtwork(
     .selectFrom("move_request")
     .select(({ fn }) => fn.count<number>("idmove_request").as("count"))
     .where("artwork_id", "=", artworkId)
-    .where(({ or, and, eb }) =>
-      or([
-        eb("is_pending", "=", 1),
-        and([eb("is_approved", "=", 1), eb("is_complete", "=", 0)]),
-      ]),
-    );
+    .where("status", "in", ["pending", "in_movement"]);
 
   if (excludeRequestId) {
     query = query.where("idmove_request", "!=", excludeRequestId);
@@ -216,14 +241,18 @@ export async function createMoveRequest(
   input: MoveRequestInsertInput,
   executor: DatabaseExecutor = db,
 ) {
+  const flags = getMoveRequestFlagsForStatus(input.status);
+
   const insertResult = await executor
     .insertInto("move_request")
     .values({
       artwork_id: input.artworkId,
+      from_location: input.fromLocation,
       to_location: input.toLocation,
-      is_pending: 1,
-      is_approved: 0,
-      is_complete: 0,
+      status: input.status,
+      is_pending: booleanToTinyInt(flags.isPending),
+      is_approved: booleanToTinyInt(flags.isApproved),
+      is_complete: booleanToTinyInt(flags.isComplete),
       comments: input.requestNotes,
       user_id: input.userId,
       time_stamp: input.requestedAt,
@@ -234,7 +263,9 @@ export async function createMoveRequest(
 }
 function mapMoveRequestUpdateInput(values: MoveRequestUpdateInput) {
   const updateValues: Partial<{
+    from_location: string | null;
     to_location: string | null;
+    status: MoveRequestStatus;
     comments: string | null;
     is_pending: number;
     is_approved: number;
@@ -243,6 +274,14 @@ function mapMoveRequestUpdateInput(values: MoveRequestUpdateInput) {
 
   if ("toLocation" in values) {
     updateValues.to_location = values.toLocation ?? null;
+  }
+
+  if ("fromLocation" in values) {
+    updateValues.from_location = values.fromLocation ?? null;
+  }
+
+  if ("status" in values && values.status) {
+    updateValues.status = values.status;
   }
 
   if ("requestNotes" in values) {

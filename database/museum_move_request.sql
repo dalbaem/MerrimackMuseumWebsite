@@ -26,7 +26,9 @@ DROP TABLE IF EXISTS `move_request`;
 CREATE TABLE `move_request` (
   `idmove_request` int NOT NULL AUTO_INCREMENT,
   `artwork_id` int DEFAULT NULL,
-  `to_location` varchar(30) DEFAULT NULL,
+  `from_location` varchar(255) DEFAULT NULL,
+  `to_location` varchar(255) DEFAULT NULL,
+  `status` varchar(40) NOT NULL DEFAULT 'pending',
   `is_pending` tinyint NOT NULL,
   `is_approved` tinyint NOT NULL,
   `comments` varchar(200) DEFAULT NULL,
@@ -36,6 +38,9 @@ CREATE TABLE `move_request` (
   PRIMARY KEY (`idmove_request`),
   KEY `FK_MoveRequest_Artwork_idx` (`artwork_id`),
   KEY `FK_MoveRequest_User_idx` (`user_id`),
+  KEY `idx_move_request_artwork_history` (`artwork_id`,`time_stamp`),
+  KEY `idx_move_request_user_history` (`user_id`,`time_stamp`),
+  CONSTRAINT `CK_MoveRequest_Status` CHECK (`status` in ('pending','in_movement','completed','denied','canceled_in_movement')),
   CONSTRAINT `FK_MoveRequest_Artwork` FOREIGN KEY (`artwork_id`) REFERENCES `artwork` (`idArtwork`),
   CONSTRAINT `FK_MoveRequest_UserAddress` FOREIGN KEY (`user_id`) REFERENCES `user` (`iduser`)
 ) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -47,7 +52,7 @@ CREATE TABLE `move_request` (
 
 LOCK TABLES `move_request` WRITE;
 /*!40000 ALTER TABLE `move_request` DISABLE KEYS */;
-INSERT INTO `move_request` VALUES (64,1,'test',0,1,'test',60,'2023-11-29 23:06:36',1),(65,28,'t',0,0,'',60,'2023-11-30 01:29:46',0);
+INSERT INTO `move_request` VALUES (64,1,NULL,'test','completed',0,1,'test',60,'2023-11-29 23:06:36',1),(65,28,NULL,'t','denied',0,0,'',60,'2023-11-30 01:29:46',0);
 /*!40000 ALTER TABLE `move_request` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -1,4 +1,5 @@
 import type { Generated } from "kysely";
+import type { MoveRequestStatus } from "@/shared/types/moveRequest";
 
 export interface ArtistTable {
   idArtist: Generated<number>;
@@ -55,7 +56,9 @@ export interface UserTable {
 export interface MoveRequestTable {
   idmove_request: Generated<number>;
   artwork_id: number | null;
+  from_location: string | null;
   to_location: string | null;
+  status: Generated<MoveRequestStatus>;
   is_pending: number;
   is_approved: number;
   comments: string | null;

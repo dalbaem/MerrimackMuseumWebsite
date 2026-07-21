@@ -1,0 +1,31 @@
+.modalTitle {
+  color: #08253f;
+  font-weight: 800;
+}
+
+.modalBody {
+  padding-top: 0.75rem;
+}
+
+.stateText {
+  color: #4f6478;
+  font-weight: 700;
+}
+
+.tableScroll {
+  max-height: 26rem;
+}
+
+.historyTable {
+  min-width: 54rem;
+}
+
+.historyTable th {
+  color: #173854;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.wrapCell {
+  overflow-wrap: anywhere;
+}

@@ -18,6 +18,7 @@ const moveRequestListStateSchema = z.enum(MOVE_REQUEST_LIST_STATES);
 export const moveRequestListQuerySchema = z.object({
   state: moveRequestListStateSchema.optional(),
   email: normalizedEmailSchema.optional(),
+  artworkId: positiveIdSchema.optional(),
 });
 
 export const createMoveRequestSchema = z.object({
