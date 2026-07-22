@@ -3,12 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Burger, Button, Collapse, Container, Group, Select, Stack, type ButtonProps } from "@mantine/core";
+import { Burger, Button, Collapse, Container, Group, Stack, type ButtonProps } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import classes from "./SiteHeader.module.css";
 import { useUser } from "./AppStateProvider";
-import { usePreviewAuth, type PreviewRole } from "./auth/previewAuth";
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 interface NavLink {
   link: string;
@@ -52,7 +51,7 @@ function LogInButton({
   signInCallbackUrl?: string;
   signOutCallbackUrl?: string;
 }) {
-  const { data: session } = usePreviewAuth();
+  const { data: session } = useSession();
   const mergedClassName = [className, buttonProps?.className]
     .filter(Boolean)
     .join(" ");
@@ -107,10 +106,6 @@ export default function SiteHeader() {
   const {
     isAdmin,
     isFaculty,
-    isPreviewActive,
-    previewEnabled,
-    previewRole,
-    setPreviewRole,
   } = useUser();
 
   const visibleLinks = links.filter((link) => canAccessLink(link, isAdmin, isFaculty));
@@ -144,34 +139,13 @@ export default function SiteHeader() {
             ))}
           </Group>
           <div className={classes.actions}>
-            {previewEnabled ? (
-              <Select
-                size="xs"
-                w={150}
-                aria-label="Preview role"
-                value={previewRole ?? "real"}
-                data={[
-                  { value: "real", label: "Real Login" },
-                  { value: "guest", label: "Preview Guest" },
-                  { value: "faculty", label: "Preview Faculty" },
-                  { value: "admin", label: "Preview Admin" },
-                ]}
-                onChange={(value) =>
-                  setPreviewRole(
-                    value && value !== "real" ? (value as PreviewRole) : null
-                  )
-                }
+            <div className={classes.desktopAuth}>
+              <LogInButton
+                buttonProps={{ size: "sm" }}
+                signInCallbackUrl={pathname}
+                signOutCallbackUrl="/collection"
               />
-            ) : null}
-            {!isPreviewActive ? (
-              <div className={classes.desktopAuth}>
-                <LogInButton
-                  buttonProps={{ size: "sm" }}
-                  signInCallbackUrl={pathname}
-                  signOutCallbackUrl="/collection"
-                />
-              </div>
-            ) : null}
+            </div>
             <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="sm" />
           </div>
         </div>
@@ -187,15 +161,13 @@ export default function SiteHeader() {
                 {link.label}
               </Link>
             ))}
-            {!isPreviewActive ? (
-              <div className={classes.mobileAuth}>
-                <LogInButton
-                  buttonProps={{ size: "sm", fullWidth: true }}
-                  signInCallbackUrl={pathname}
-                  signOutCallbackUrl="/collection"
-                />
-              </div>
-            ) : null}
+            <div className={classes.mobileAuth}>
+              <LogInButton
+                buttonProps={{ size: "sm", fullWidth: true }}
+                signInCallbackUrl={pathname}
+                signOutCallbackUrl="/collection"
+              />
+            </div>
           </Stack>
         </Collapse>
       </Container>

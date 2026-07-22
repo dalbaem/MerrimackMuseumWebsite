@@ -3,12 +3,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/server/auth/nextAuth";
 import { getRoleForEmail } from "@/server/users/service";
-import {
-  PREVIEW_ROLE_COOKIE_KEY,
-  PREVIEW_ROLE_HEADER,
-  canUsePreviewAuthForHostname,
-  type PreviewRole,
-} from "@/shared/previewAuth";
 import type { AppRole } from "@/shared/types/user";
 
 export type { AppRole } from "@/shared/types/user";
@@ -16,38 +10,11 @@ export type { AppRole } from "@/shared/types/user";
 export interface RequestActor {
   email: string;
   role: AppRole;
-  isPreview: boolean;
-}
-
-function getPreviewRole(request: NextRequest): Exclude<PreviewRole, "guest"> | null {
-  if (
-    process.env.NODE_ENV === "production" ||
-    !canUsePreviewAuthForHostname(request.nextUrl.hostname)
-  ) {
-    return null;
-  }
-
-  const headerValue = request.headers
-    .get(PREVIEW_ROLE_HEADER)
-    ?.trim()
-    .toLowerCase();
-  const cookieValue = request.cookies.get(PREVIEW_ROLE_COOKIE_KEY)?.value;
-  const value = cookieValue ?? headerValue;
-  return value === "admin" || value === "faculty" ? value : null;
 }
 
 export async function getRequestActor(
   request: NextRequest,
 ): Promise<RequestActor | null> {
-  const previewRole = getPreviewRole(request);
-  if (previewRole) {
-    return {
-      email: `${previewRole}@preview.local`,
-      role: previewRole,
-      isPreview: true,
-    };
-  }
-
   const session = await getServerSession(authOptions);
   const email = session?.user?.email?.trim().toLowerCase();
 
@@ -66,7 +33,6 @@ export async function getRequestActor(
   return {
     email,
     role,
-    isPreview: false,
   };
 }
 

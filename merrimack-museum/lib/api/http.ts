@@ -1,26 +1,9 @@
-import {
-  PREVIEW_ROLE_HEADER,
-  PREVIEW_ROLE_STORAGE_KEY,
-  canUsePreviewAuthForHostname,
-} from "@/shared/previewAuth";
 import { readApiErrorMessage } from "@/shared/apiError";
 
 const JSON_HEADERS = {
   "Content-Type": "application/json",
   "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
 };
-function getPreviewRoleHeader() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  if (!canUsePreviewAuthForHostname(window.location.hostname)) {
-    return null;
-  }
-
-  const value = window.localStorage.getItem(PREVIEW_ROLE_STORAGE_KEY);
-  return value === "admin" || value === "faculty" ? value : null;
-}
 
 export async function requestJson<T>(
   path: string,
@@ -32,11 +15,6 @@ export async function requestJson<T>(
     if (!headers.has(key)) {
       headers.set(key, value);
     }
-  }
-
-  const previewRole = getPreviewRoleHeader();
-  if (previewRole && !headers.has(PREVIEW_ROLE_HEADER)) {
-    headers.set(PREVIEW_ROLE_HEADER, previewRole);
   }
 
   const response = await fetch(path, {

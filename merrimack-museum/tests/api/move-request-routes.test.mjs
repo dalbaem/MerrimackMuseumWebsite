@@ -128,7 +128,6 @@ test("move request list allows self-service email queries", async () => {
       ensureActorMatchesEmail: (actor, email) => actor.email === email,
       getRequestActor: async () => ({
         email: "faculty@example.com",
-        isPreview: false,
         role: "faculty",
       }),
       requireRole: async () => ({
@@ -167,7 +166,6 @@ test("move request list allows admins to query artwork history", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -202,7 +200,6 @@ test("move request creation forbids faculty requests for other users", async () 
       ensureActorMatchesEmail: (actor, email) => actor.email === email,
       getRequestActor: async () => ({
         email: "faculty@example.com",
-        isPreview: false,
         role: "faculty",
       }),
       requireRole: async () => ({
@@ -247,7 +244,6 @@ test("move request creation allows admins and forwards normalized input", async 
       ensureActorMatchesEmail: () => false,
       getRequestActor: async () => ({
         email: "admin@example.com",
-        isPreview: false,
         role: "admin",
       }),
       requireRole: async () => ({
@@ -288,13 +284,6 @@ test("move request creation allows admins and forwards normalized input", async 
         requestedAt: "2026-04-20T09:00:00.000Z",
         toLocation: "Academic Building 214",
       },
-      {
-        actor: {
-          email: "admin@example.com",
-          isPreview: false,
-          role: "admin",
-        },
-      },
     ],
   ]);
   assert.deepEqual(await readJsonResponse(response), {
@@ -309,7 +298,6 @@ test("move request creation allows requests without a destination", async () => 
       ensureActorMatchesEmail: () => false,
       getRequestActor: async () => ({
         email: "admin@example.com",
-        isPreview: false,
         role: "admin",
       }),
       requireRole: async () => ({
@@ -348,13 +336,6 @@ test("move request creation allows requests without a destination", async () => 
         requestNotes: "Please move after finals.",
         requestedAt: "2026-04-20T09:00:00.000Z",
         toLocation: null,
-      },
-      {
-        actor: {
-          email: "admin@example.com",
-          isPreview: false,
-          role: "admin",
-        },
       },
     ],
   ]);
@@ -413,13 +394,11 @@ test("move request detail get returns a presented request for admins", async () 
     namedExports: {
       getRequestActor: async () => ({
         email: "admin@example.com",
-        isPreview: false,
         role: "admin",
       }),
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -455,7 +434,6 @@ test("move request approval route validates and forwards the request action", as
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -491,7 +469,6 @@ test("move request completion route validates and forwards completion payloads",
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,

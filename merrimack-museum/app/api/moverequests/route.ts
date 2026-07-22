@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       toLocation: data.toLocation,
       requestNotes: data.requestNotes,
       requestedAt: data.requestedAt,
-    }, { actor });
+    });
 
     return NextResponse.json(
       { message: "Request saved successfully" },

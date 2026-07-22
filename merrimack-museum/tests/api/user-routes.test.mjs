@@ -71,7 +71,6 @@ test("user access lookup allows self-service requests", async () => {
       ensureActorMatchesEmail: (actor, email) => actor.email === email,
       getRequestActor: async () => ({
         email: "faculty@example.com",
-        isPreview: false,
         role: "faculty",
       }),
     },
@@ -105,7 +104,6 @@ test("user access lookup forbids faculty access to other users", async () => {
       ensureActorMatchesEmail: () => false,
       getRequestActor: async () => ({
         email: "faculty@example.com",
-        isPreview: false,
         role: "faculty",
       }),
     },
@@ -174,7 +172,6 @@ test("user role updates forward normalized input for admins", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -240,7 +237,6 @@ test("user search forwards filters for admins", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -313,7 +309,6 @@ test("user delete forwards normalized route email for admins", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,

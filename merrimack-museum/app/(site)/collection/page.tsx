@@ -410,12 +410,36 @@ export default function CollectionPage() {
         ? 'We could not verify account access right now. You can still browse the collection as a guest.'
         : null;
 
+  const handleDismissSignInNotice = () => {
+    setSignInState(null);
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('signin');
+    window.history.replaceState(
+      null,
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  };
+
   return (
     <div className={classes.page}>
       <Container size="xl" className={classes.shell}>
         <Stack gap="lg" className={classes.topSection}>
           {signInNotice ? (
-            <Alert color="blue" radius="lg">
+            <Alert
+              className={classes.signInNotice}
+              classNames={{
+                closeButton: classes.signInNoticeCloseButton,
+                message: classes.signInNoticeMessage,
+              }}
+              color="red"
+              closeButtonLabel="Dismiss sign-in message"
+              onClose={handleDismissSignInNotice}
+              radius="md"
+              variant="light"
+              withCloseButton
+            >
               {signInNotice}
             </Alert>
           ) : null}

@@ -1,4 +1,3 @@
-import type { RequestActor } from "@/server/auth/requestActor";
 import { db, type DatabaseExecutor } from "@/server/db/client";
 import { AppError } from "@/server/errors";
 import { updateArtworkInCatalog } from "@/server/artworks/service";
@@ -13,7 +12,6 @@ import {
   updateMoveRequestFields,
 } from "@/server/moveRequests/repository";
 import { findUserByEmail } from "@/server/users/repository";
-import { ensurePrivilegedUser } from "@/server/users/service";
 import type { MoveRequestCreateInput } from "@/server/moveRequests/types";
 import type { MoveRequestCompletionStatus } from "@/shared/types/moveRequest";
 import { normalizeEmail, type AppRole } from "@/shared/types/user";
@@ -40,26 +38,13 @@ function requireStoredMoveRequest<T>(
 
 async function resolveMoveRequestUser(
   email: string,
-  actor: RequestActor | null | undefined,
   executor: DatabaseExecutor,
 ) {
-  let user = await findUserByEmail(email, executor);
-
-  if (
-    !user &&
-    actor?.isPreview &&
-    actor.role !== "guest" &&
-    actor.email === email
-  ) {
-    user = await ensurePrivilegedUser(email, actor.role, executor);
-  }
-
-  return user;
+  return findUserByEmail(email, executor);
 }
 
 export async function createMuseumMoveRequest(
   input: MoveRequestCreateInput,
-  options: { actor?: RequestActor | null } = {},
 ) {
   const normalizedEmail = normalizeEmail(input.email);
   const normalizedDestination = normalizeRequestText(input.toLocation);
@@ -80,7 +65,7 @@ export async function createMuseumMoveRequest(
       throw new AppError(404, "Artwork not found.");
     }
 
-    const user = await resolveMoveRequestUser(normalizedEmail, options.actor, trx);
+    const user = await resolveMoveRequestUser(normalizedEmail, trx);
 
     if (!user) {
       throw new AppError(400, "The specified user does not exist.");

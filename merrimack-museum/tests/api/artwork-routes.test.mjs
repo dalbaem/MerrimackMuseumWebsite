@@ -62,7 +62,6 @@ beforeEach(() => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -128,7 +127,6 @@ test("artwork creation requires an uploaded image", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -166,7 +164,6 @@ test("artwork creation uploads an image and persists normalized fields", async (
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -325,7 +322,6 @@ test("artwork update uses the route id and persists normalized fields", async ()
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,
@@ -412,7 +408,6 @@ test("artwork update surfaces mapped upload failures", async () => {
       requireRole: async () => ({
         actor: {
           email: "admin@example.com",
-          isPreview: false,
           role: "admin",
         },
         response: null,

@@ -5,5 +5,3 @@
 5. `cd merrimack-museum/`
 
 - `npm run dev`
-- `npm run dev:preview` - can show admin/faculty pages
-- `npm run dev:real` -uses real login
