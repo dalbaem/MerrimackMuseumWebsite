@@ -1,6 +1,6 @@
 .DS_Store
 
-merrimack-museum/.env.local
+merrimack-museum/.env*.local
 
 merrimack-museum/node_modules/
 

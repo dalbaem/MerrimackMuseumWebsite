@@ -1,0 +1,23 @@
+# file to /etc/systemd/system/merrimack-museum.service
+
+[Unit]
+Description=Merrimack Museum Website
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=
+Group=
+WorkingDirectory=
+EnvironmentFile=
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env npm run start -- -H 0.0.0.0
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+KillSignal=SIGTERM
+SyslogIdentifier=merrimack-museum
+
+[Install]
+WantedBy=multi-user.target
